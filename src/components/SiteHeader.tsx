@@ -6,7 +6,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
         <div className="flex items-center gap-2 text-lg font-bold">
           <img
-            src="/logo.png"
+            src="/logo-small.png"
             alt="Logo"
             className="h-8 w-8 rounded-sm object-cover"
           />
