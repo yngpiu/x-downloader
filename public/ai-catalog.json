@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "resources": [
+    {
+      "name": "X Downloader",
+      "description": "Download high-quality videos and images from X (Twitter)",
+      "url": "/"
+    }
+  ]
+}

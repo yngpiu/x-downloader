@@ -1,0 +1,13 @@
+# X Downloader
+
+A free and fast tool to download high-quality videos and images from X (Twitter).
+
+## Features
+- Download original quality videos and images
+- Built-in AI translation for tweets
+- No watermark
+- Search history caching
+
+## Links
+- [Trang chủ](https://x-downloader.pages.dev/)
+- [Mã nguồn GitHub](https://github.com/yngpiu/x-downloader)
