@@ -9,5 +9,5 @@ A free and fast tool to download high-quality videos and images from X (Twitter)
 - Search history caching
 
 ## Links
-- [Trang chủ](https://x-downloader.pages.dev/)
+- [Trang chủ](https://x.enmixx.com/)
 - [Mã nguồn GitHub](https://github.com/yngpiu/x-downloader)
