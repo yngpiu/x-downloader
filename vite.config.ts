@@ -30,11 +30,37 @@ export default defineConfig(({ mode }) => {
 					);
 				},
 			},
+			{
+				name: "preload-fonts",
+				transformIndexHtml(html, ctx) {
+					if (!ctx.bundle) return html;
+					let preloads = "";
+					for (const chunk of Object.values(ctx.bundle)) {
+						if (chunk.fileName.endsWith(".woff2") && (chunk.fileName.includes("latin") || chunk.fileName.includes("vietnamese"))) {
+							preloads += `\n    <link rel="preload" href="/${chunk.fileName}" as="font" type="font/woff2" crossorigin="anonymous">`;
+						}
+					}
+					return html.replace("</head>", `${preloads}\n  </head>`);
+				},
+			},
 		],
 		resolve: {
 			alias: {
 				"@": resolve(import.meta.dirname, "./src"),
 			},
 		},
+		build: {
+			rollupOptions: {
+				output: {
+					manualChunks(id) {
+						if (id.includes('node_modules')) {
+							if (id.includes('react') || id.includes('react-dom')) return 'vendor';
+							if (id.includes('lucide') || id.includes('@base-ui') || id.includes('@tanstack') || id.includes('zod')) return 'ui';
+							return 'vendor';
+						}
+					}
+				}
+			}
+		}
 	};
 });

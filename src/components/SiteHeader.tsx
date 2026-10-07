@@ -8,6 +8,8 @@ export function SiteHeader() {
           <img
             src="/logo-small.png"
             alt="Logo"
+            width={32}
+            height={32}
             className="h-8 w-8 rounded-sm object-cover"
           />
           <span>X Downloader</span>

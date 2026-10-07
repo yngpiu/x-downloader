@@ -2,6 +2,7 @@ export type TranslationEngine = "google" | "gemini"
 
 export interface TranslationSettings {
   engine: TranslationEngine
+  targetLanguage: string
   geminiApiKey: string
   geminiPrompt: string
 }
@@ -9,13 +10,25 @@ export interface TranslationSettings {
 const STORAGE_KEY = "x_downloader_translation_settings_v1"
 
 export const DEFAULT_GEMINI_PROMPT =
-  "You are a professional translator. Translate this X (Twitter) social media post to English naturally, with accurate Kpop/social media context, keeping emojis, hashtags and links intact (if any). Return only the translated content, no explanations or markdown code blocks."
+  "You are a professional translator. Translate this X (Twitter) social media post to the target language naturally, with accurate Kpop/social media context, keeping emojis, hashtags and links intact (if any). Return only the translated content, no explanations or markdown code blocks."
 
 export const DEFAULT_TRANSLATION_SETTINGS: TranslationSettings = {
   engine: "google",
+  targetLanguage: "vi",
   geminiApiKey: "",
   geminiPrompt: DEFAULT_GEMINI_PROMPT,
 }
+
+export const SUPPORTED_TARGET_LANGUAGES = [
+  { code: "vi", name: "Vietnamese" },
+  { code: "en", name: "English" },
+  { code: "ko", name: "Korean" },
+  { code: "ja", name: "Japanese" },
+  { code: "zh-CN", name: "Chinese (Simplified)" },
+  { code: "es", name: "Spanish" },
+  { code: "fr", name: "French" },
+  { code: "th", name: "Thai" },
+]
 
 /**
  * Reads translation settings safely from localStorage.
@@ -28,6 +41,10 @@ export function getStoredTranslationSettings(): TranslationSettings {
     const parsed = JSON.parse(raw)
     return {
       engine: parsed.engine === "gemini" ? "gemini" : "google",
+      targetLanguage:
+        typeof parsed.targetLanguage === "string" && parsed.targetLanguage
+          ? parsed.targetLanguage
+          : "vi",
       geminiApiKey:
         typeof parsed.geminiApiKey === "string"
           ? parsed.geminiApiKey.trim()
@@ -80,8 +97,8 @@ const LANGUAGE_NAMES: Record<string, string> = {
 /**
  * Translates text using Google Translate GTX endpoint (CORS-friendly in browsers)
  */
-async function translateWithGoogle(text: string): Promise<TranslationResult> {
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t&q=${encodeURIComponent(
+async function translateWithGoogle(text: string, targetLanguage: string): Promise<TranslationResult> {
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLanguage}&dt=t&q=${encodeURIComponent(
     text
   )}`
 
@@ -115,6 +132,7 @@ async function translateWithGoogle(text: string): Promise<TranslationResult> {
  */
 async function translateWithGemini(
   text: string,
+  targetLanguage: string,
   apiKey: string,
   prompt: string
 ): Promise<TranslationResult> {
@@ -126,6 +144,8 @@ async function translateWithGemini(
   }
 
   const effectivePrompt = prompt.trim() || DEFAULT_GEMINI_PROMPT
+  const targetLangName = SUPPORTED_TARGET_LANGUAGES.find((l) => l.code === targetLanguage)?.name || targetLanguage
+
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
     cleanKey
   )}`
@@ -135,7 +155,7 @@ async function translateWithGemini(
       {
         parts: [
           {
-            text: `${effectivePrompt}\n\nText to translate:\n${text}`,
+            text: `${effectivePrompt}\n\nTarget Language: ${targetLangName}\n\nText to translate:\n${text}`,
           },
         ],
       },
@@ -186,7 +206,7 @@ export async function translateTweetText(
     return { translatedText: "" }
   }
 
-  const cacheKey = `${settings.engine}:${settings.engine === "gemini" ? settings.geminiPrompt : ""}:${trimmed}`
+  const cacheKey = `${settings.engine}:${settings.targetLanguage}:${settings.engine === "gemini" ? settings.geminiPrompt : ""}:${trimmed}`
   const cached = translationMemoryCache.get(cacheKey)
   if (cached) {
     return cached
@@ -196,11 +216,12 @@ export async function translateTweetText(
   if (settings.engine === "gemini") {
     result = await translateWithGemini(
       trimmed,
+      settings.targetLanguage,
       settings.geminiApiKey,
       settings.geminiPrompt
     )
   } else {
-    result = await translateWithGoogle(trimmed)
+    result = await translateWithGoogle(trimmed, settings.targetLanguage)
   }
 
   translationMemoryCache.set(cacheKey, result)

@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select"
 import {
   DEFAULT_GEMINI_PROMPT,
+  SUPPORTED_TARGET_LANGUAGES,
   type TranslationEngine,
   type TranslationSettings,
 } from "@/utils/translation"
@@ -56,6 +57,7 @@ function GoogleTranslateIcon({
 const translationFormSchema = z
   .object({
     engine: z.enum(["google", "gemini"]),
+    targetLanguage: z.string(),
     geminiApiKey: z.string(),
     geminiPrompt: z.string(),
   })
@@ -99,6 +101,7 @@ const TranslationFormContent = memo(function TranslationFormContent({
   const form = useForm({
     defaultValues: {
       engine: settings.engine,
+      targetLanguage: settings.targetLanguage,
       geminiApiKey: settings.geminiApiKey,
       geminiPrompt: settings.geminiPrompt,
     },
@@ -108,6 +111,7 @@ const TranslationFormContent = memo(function TranslationFormContent({
     onSubmit: ({ value }) => {
       onSave({
         engine: value.engine,
+        targetLanguage: value.targetLanguage,
         geminiApiKey: value.geminiApiKey.trim(),
         geminiPrompt: value.geminiPrompt.trim() || DEFAULT_GEMINI_PROMPT,
       })
@@ -194,6 +198,41 @@ const TranslationFormContent = memo(function TranslationFormContent({
                 </Select>
                 <FieldDescription>
                   Select translation processing system.
+                </FieldDescription>
+                {isInvalid ? (
+                  <FieldError errors={field.state.meta.errors} />
+                ) : null}
+              </Field>
+            )
+          }}
+        </form.Field>
+
+        {/* Target Language Selector */}
+        <form.Field name="targetLanguage">
+          {(field) => {
+            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>Target Language</FieldLabel>
+                <Select
+                  value={field.state.value}
+                  onValueChange={(val) => field.handleChange(val || "")}
+                >
+                  <SelectTrigger id={field.name} aria-invalid={isInvalid}>
+                    <SelectValue>
+                      {SUPPORTED_TARGET_LANGUAGES.find((l) => l.code === field.state.value)?.name || field.state.value}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUPPORTED_TARGET_LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.code} value={lang.code}>
+                        {lang.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldDescription>
+                  The language you want to translate into.
                 </FieldDescription>
                 {isInvalid ? (
                   <FieldError errors={field.state.meta.errors} />
@@ -326,7 +365,7 @@ export const TranslationSettingsDialog = memo(
               Translation Settings
             </DialogTitle>
             <DialogDescription>
-              Customize automatic translation to English using Google Translate
+              Customize automatic translation using Google Translate
               or Gemini AI model.
             </DialogDescription>
           </DialogHeader>
