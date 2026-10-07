@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/SEO.png" alt="X Downloader Logo" width="200" />
+  <img src="public/logo.png" alt="X Downloader Logo" width="200" />
   
   # X Downloader
 
