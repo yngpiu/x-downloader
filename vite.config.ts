@@ -8,7 +8,7 @@ import { defineConfig, loadEnv } from "vite";
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
 	// Dùng VITE_SITE_URL nếu có, không thì lấy mặc định
-	const siteUrl = env.VITE_SITE_URL;
+	const siteUrl = env.VITE_SITE_URL || "https://x.enmixx.com";
 
 	return {
 		plugins: [
